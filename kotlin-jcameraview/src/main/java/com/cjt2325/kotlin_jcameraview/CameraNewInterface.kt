@@ -5,15 +5,13 @@ import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
-import android.os.Build
 import android.os.Handler
-import android.support.annotation.NonNull
-import android.support.annotation.RequiresApi
 import android.util.Size
 import android.view.Surface
+import androidx.annotation.NonNull
 import com.cjt2325.kotlin_jcameraview.util.i
+import com.permissionx.guolindev.PermissionX
 import java.util.*
-
 
 /**
  * =====================================
@@ -49,7 +47,6 @@ class CameraNewInterface private constructor() {
     private var preview_width: Int = 0
     private var preview_height: Int = 0
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun openCamera(context: Context, textureView: AutoFitTextureView, width: Int, height: Int) {
         mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         mTextureView = textureView
@@ -63,7 +60,7 @@ class CameraNewInterface private constructor() {
 //                throw RuntimeException("Time out waiting to lock camera opening.")
 //            }
         setUpCameraOutputs(context, 0, 0)
-        mCameraManager?.openCamera("0", mStateCallback, null)
+        mCameraManager!!.openCamera("0", mStateCallback, null)
 //        .openCamera(mCameraId, mStateCallback, mBackgroundHandler)
 //        } catch (e: CameraAccessException) {
 //            e.printStackTrace()
@@ -73,7 +70,6 @@ class CameraNewInterface private constructor() {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun stopCamera() {
         if (null == mCameraDevice)
             return
@@ -82,8 +78,7 @@ class CameraNewInterface private constructor() {
 
     private val mCameraCaptureSessionCallback = object : CameraCaptureSession.StateCallback() {
 
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-        override fun onConfigured(session: CameraCaptureSession?) {
+        override fun onConfigured(session: CameraCaptureSession) {
             if (null == mCameraDevice) {
                 i("null == mCameraDevice")
                 return
@@ -91,41 +86,48 @@ class CameraNewInterface private constructor() {
             // 当摄像头已经准备好时，开始显示预览
             mCaptureSession = session
             // 自动对焦
-            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+            mPreviewRequestBuilder?.set(
+                CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+            )
             // 打开闪光灯
-            mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+            mPreviewRequestBuilder?.set(
+                CaptureRequest.CONTROL_AE_MODE,
+                CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
+            )
             // 显示预览
 
             if (mPreviewRequestBuilder == null) {
                 i("mPreviewRequestBuilder ==null")
             } else {
-                var previewRequest: CaptureRequest = mPreviewRequestBuilder?.build() as CaptureRequest
+                val previewRequest: CaptureRequest =
+                    mPreviewRequestBuilder?.build() as CaptureRequest
                 mCaptureSession?.setRepeatingRequest(previewRequest, null, null)
                 i("启动浏览？？？？？？？？？？？")
             }
         }
 
-        override fun onConfigureFailed(session: CameraCaptureSession?) {
+        override fun onConfigureFailed(session: CameraCaptureSession) {
             i("onConfigureFailed")
         }
     }
 
     //打开相机时候的监听器，通过他可以得到相机实例，这个实例可以创建请求建造者
     private val mStateCallback = object : CameraDevice.StateCallback() {
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
         override fun onOpened(cameraDevice: CameraDevice) {
             this@CameraNewInterface.mCameraDevice = cameraDevice
             i("相机已经打开")
             takePreview()
         }
 
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
         override fun onDisconnected(cameraDevice: CameraDevice) {
             cameraDevice.close()
             i("相机连接断开")
         }
 
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
         override fun onError(cameraDevice: CameraDevice, i: Int) {
             cameraDevice.close()
             this@CameraNewInterface.mCameraDevice = null
@@ -134,10 +136,10 @@ class CameraNewInterface private constructor() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun takePreview() {
         // 创建预览需要的CaptureRequest.Builder
-        mPreviewRequestBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW) as CaptureRequest.Builder
+        mPreviewRequestBuilder =
+            mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW) as CaptureRequest.Builder
         // 将SurfaceView的surface作为CaptureRequest.Builder的目标
         var sufaceTexture: SurfaceTexture = mTextureView?.surfaceTexture as SurfaceTexture
         sufaceTexture.setDefaultBufferSize(1280, 720)
@@ -145,7 +147,11 @@ class CameraNewInterface private constructor() {
         mPreviewRequestBuilder?.addTarget(surface)
         // 创建CameraCaptureSession，该对象负责管理处理预览请求和拍照请求
 
-        mCameraDevice?.createCaptureSession(Arrays.asList(surface, mImageReader?.surface), mCameraCaptureSessionCallback, null)
+        mCameraDevice?.createCaptureSession(
+            Arrays.asList(surface, mImageReader?.surface),
+            mCameraCaptureSessionCallback,
+            null
+        )
     }
 
 
@@ -153,14 +159,17 @@ class CameraNewInterface private constructor() {
         lockFocus()
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
     private fun lockFocus() {
         i("lockFocus")
         // This is how to tell the camera to lock focus.
-        mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START)
+        mPreviewRequestBuilder?.set(
+            CaptureRequest.CONTROL_AF_TRIGGER,
+            CameraMetadata.CONTROL_AF_TRIGGER_START
+        )
         // Tell #mCaptureCallback to wait for the lock.
         mState = STATE_WAITING_LOCK
-        mCaptureSession?.capture(mPreviewRequestBuilder?.build(), mCaptureCallback, null)
+        mCaptureSession?.capture(mPreviewRequestBuilder!!.build(), mCaptureCallback, null)
     }
 
 
@@ -169,7 +178,7 @@ class CameraNewInterface private constructor() {
 //        mBackgroundHandler?.post(ImageSaver(reader.acquireNextImage(), mFile))
 //    }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
     private fun setUpCameraOutputs(context: Context, width: Int, height: Int) {
         if (mCameraManager == null)
             mCameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -182,7 +191,8 @@ class CameraNewInterface private constructor() {
 //                continue
 //            }
 
-            val map = characteristics?.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: continue
+            val map = characteristics?.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                ?: continue
 
             var size = map.getOutputSizes(ImageFormat.JPEG)
 //            for (i in size) {
@@ -293,7 +303,7 @@ class CameraNewInterface private constructor() {
     var mState: Int? = null
 
     private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+
         private fun process(result: CaptureResult) {
             i("process")
             when (mState) {
@@ -319,8 +329,9 @@ class CameraNewInterface private constructor() {
                     // CONTROL_AE_STATE can be null on some devices
                     val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
                     if (aeState == null ||
-                            aeState === CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
-                            aeState === CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                        aeState === CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                        aeState === CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
+                    ) {
                         mState = STATE_WAITING_NON_PRECAPTURE
                     }
                 }
@@ -335,15 +346,19 @@ class CameraNewInterface private constructor() {
             }
         }
 
-        override fun onCaptureProgressed(@NonNull session: CameraCaptureSession,
-                                         @NonNull request: CaptureRequest,
-                                         @NonNull partialResult: CaptureResult) {
+        override fun onCaptureProgressed(
+            @NonNull session: CameraCaptureSession,
+            @NonNull request: CaptureRequest,
+            @NonNull partialResult: CaptureResult
+        ) {
             process(partialResult)
         }
 
-        override fun onCaptureCompleted(@NonNull session: CameraCaptureSession,
-                                        @NonNull request: CaptureRequest,
-                                        @NonNull result: TotalCaptureResult) {
+        override fun onCaptureCompleted(
+            @NonNull session: CameraCaptureSession,
+            @NonNull request: CaptureRequest,
+            @NonNull result: TotalCaptureResult
+        ) {
             process(result)
         }
 
@@ -355,12 +370,15 @@ class CameraNewInterface private constructor() {
             return
         }
         // This is the CaptureRequest.Builder that we use to take a picture.
-        val captureBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-        captureBuilder?.addTarget(mImageReader?.surface)
+        val captureBuilder =
+            mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+        captureBuilder?.addTarget(mImageReader!!.surface)
 
         // Use the same AE and AF modes as the preview.
-        captureBuilder?.set(CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+        captureBuilder?.set(
+            CaptureRequest.CONTROL_AF_MODE,
+            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+        )
         if (captureBuilder != null) {
             setAutoFlash(captureBuilder)
         }
@@ -371,9 +389,11 @@ class CameraNewInterface private constructor() {
 
         val CaptureCallback = object : CameraCaptureSession.CaptureCallback() {
 
-            override fun onCaptureCompleted(session: CameraCaptureSession,
-                                            request: CaptureRequest,
-                                            result: TotalCaptureResult) {
+            override fun onCaptureCompleted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                result: TotalCaptureResult
+            ) {
 //                showToast("Saved: " + mFile)
 //                Log.d(TAG, mFile.toString())
 //                unlockFocus()
@@ -381,24 +401,30 @@ class CameraNewInterface private constructor() {
         }
 
         mCaptureSession?.stopRepeating()
-        mCaptureSession?.capture(captureBuilder?.build(), CaptureCallback, null)
+        mCaptureSession?.capture(captureBuilder!!.build(), CaptureCallback, null)
     }
 
     private fun setAutoFlash(requestBuilder: CaptureRequest.Builder) {
 //        if (mFlashSupported) {
-        requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH)
+        requestBuilder.set(
+            CaptureRequest.CONTROL_AE_MODE,
+            CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
+        )
 //        }
     }
 
     private fun runPrecaptureSequence() {
         // This is how to tell the camera to trigger.
-        mPreviewRequestBuilder?.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START)
+        mPreviewRequestBuilder?.set(
+            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+            CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START
+        )
         // Tell #mCaptureCallback to wait for the precapture sequence to be set.
         mState = STATE_WAITING_PRECAPTURE
-        mCaptureSession?.capture(mPreviewRequestBuilder?.build(), mCaptureCallback,
-                mBackgroundHandler)
+        mCaptureSession?.capture(
+            mPreviewRequestBuilder!!.build(), mCaptureCallback,
+            mBackgroundHandler
+        )
     }
 
     private val mOnImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->

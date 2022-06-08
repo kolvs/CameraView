@@ -9,7 +9,7 @@ import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -89,7 +89,7 @@ public class JCameraView extends FrameLayout implements CameraInterface.CameraOp
     private ImageView mSwitchCamera;
     private ImageView mFlashLamp;
     private CaptureLayout mCaptureLayout;
-    private FoucsView mFoucsView;
+    private FocusView mFocusView;
     private MediaPlayer mMediaPlayer;
 
     private int layout_width;
@@ -169,7 +169,7 @@ public class JCameraView extends FrameLayout implements CameraInterface.CameraOp
         mCaptureLayout = (CaptureLayout) view.findViewById(R.id.capture_layout);
         mCaptureLayout.setDuration(duration);
         mCaptureLayout.setIconSrc(iconLeft, iconRight);
-        mFoucsView = (FoucsView) view.findViewById(R.id.fouce_view);
+        mFocusView = (FocusView) view.findViewById(R.id.fouce_view);
         mVideoView.getHolder().addCallback(this);
         //切换摄像头
         mSwitchCamera.setOnClickListener(new OnClickListener() {
@@ -370,7 +370,7 @@ public class JCameraView extends FrameLayout implements CameraInterface.CameraOp
         machine.foucs(x, y, new CameraInterface.FocusCallback() {
             @Override
             public void focusSuccess() {
-                mFoucsView.setVisibility(INVISIBLE);
+                mFocusView.setVisibility(INVISIBLE);
             }
         });
     }
@@ -539,7 +539,7 @@ public class JCameraView extends FrameLayout implements CameraInterface.CameraOp
     @Override
     public void startPreviewCallback() {
         LogUtil.i("startPreviewCallback");
-        handlerFoucs(mFoucsView.getWidth() / 2, mFoucsView.getHeight() / 2);
+        handlerFoucs(mFocusView.getWidth() / 2, mFocusView.getHeight() / 2);
     }
 
     @Override
@@ -547,24 +547,24 @@ public class JCameraView extends FrameLayout implements CameraInterface.CameraOp
         if (y > mCaptureLayout.getTop()) {
             return false;
         }
-        mFoucsView.setVisibility(VISIBLE);
-        if (x < mFoucsView.getWidth() / 2) {
-            x = mFoucsView.getWidth() / 2;
+        mFocusView.setVisibility(VISIBLE);
+        if (x < mFocusView.getWidth() / 2) {
+            x = mFocusView.getWidth() / 2;
         }
-        if (x > layout_width - mFoucsView.getWidth() / 2) {
-            x = layout_width - mFoucsView.getWidth() / 2;
+        if (x > layout_width - mFocusView.getWidth() / 2) {
+            x = layout_width - mFocusView.getWidth() / 2;
         }
-        if (y < mFoucsView.getWidth() / 2) {
-            y = mFoucsView.getWidth() / 2;
+        if (y < mFocusView.getWidth() / 2) {
+            y = mFocusView.getWidth() / 2;
         }
-        if (y > mCaptureLayout.getTop() - mFoucsView.getWidth() / 2) {
-            y = mCaptureLayout.getTop() - mFoucsView.getWidth() / 2;
+        if (y > mCaptureLayout.getTop() - mFocusView.getWidth() / 2) {
+            y = mCaptureLayout.getTop() - mFocusView.getWidth() / 2;
         }
-        mFoucsView.setX(x - mFoucsView.getWidth() / 2);
-        mFoucsView.setY(y - mFoucsView.getHeight() / 2);
-        ObjectAnimator scaleX = ObjectAnimator.ofFloat(mFoucsView, "scaleX", 1, 0.6f);
-        ObjectAnimator scaleY = ObjectAnimator.ofFloat(mFoucsView, "scaleY", 1, 0.6f);
-        ObjectAnimator alpha = ObjectAnimator.ofFloat(mFoucsView, "alpha", 1f, 0.4f, 1f, 0.4f, 1f, 0.4f, 1f);
+        mFocusView.setX(x - mFocusView.getWidth() / 2);
+        mFocusView.setY(y - mFocusView.getHeight() / 2);
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(mFocusView, "scaleX", 1, 0.6f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(mFocusView, "scaleY", 1, 0.6f);
+        ObjectAnimator alpha = ObjectAnimator.ofFloat(mFocusView, "alpha", 1f, 0.4f, 1f, 0.4f, 1f, 0.4f, 1f);
         AnimatorSet animSet = new AnimatorSet();
         animSet.play(scaleX).with(scaleY).before(alpha);
         animSet.setDuration(400);

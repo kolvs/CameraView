@@ -37,19 +37,6 @@ public class CaptureLayout extends FrameLayout {
     private ReturnListener returnListener;      //退出按钮监听
     private ClickListener leftClickListener;    //左边按钮监听
     private ClickListener rightClickListener;   //右边按钮监听
-
-    public void setTypeLisenter(TypeListener typeLisenter) {
-        this.typeLisenter = typeLisenter;
-    }
-
-    public void setCaptureLisenter(CaptureListener captureLisenter) {
-        this.captureLisenter = captureLisenter;
-    }
-
-    public void setReturnLisenter(ReturnListener returnListener) {
-        this.returnListener = returnListener;
-    }
-
     private CaptureButton btn_capture;      //拍照按钮
     private TypeButton btn_confirm;         //确认按钮
     private TypeButton btn_cancel;          //取消按钮
@@ -57,19 +44,15 @@ public class CaptureLayout extends FrameLayout {
     private ImageView iv_custom_left;            //左边自定义按钮
     private ImageView iv_custom_right;            //右边自定义按钮
     private TextView txt_tip;               //提示文本
-
     private int layout_width;
     private int layout_height;
     private int button_size;
     private int iconLeft = 0;
     private int iconRight = 0;
-
     private boolean isFirst = true;
-
     public CaptureLayout(Context context) {
         this(context, null);
     }
-
     public CaptureLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
@@ -91,6 +74,18 @@ public class CaptureLayout extends FrameLayout {
 
         initView();
         initEvent();
+    }
+
+    public void setTypeLisenter(TypeListener typeLisenter) {
+        this.typeLisenter = typeLisenter;
+    }
+
+    public void setCaptureLisenter(CaptureListener captureLisenter) {
+        this.captureLisenter = captureLisenter;
+    }
+
+    public void setReturnLisenter(ReturnListener returnListener) {
+        this.returnListener = returnListener;
     }
 
     @Override

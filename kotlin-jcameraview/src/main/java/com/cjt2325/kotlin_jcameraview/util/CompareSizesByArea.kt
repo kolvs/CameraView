@@ -1,10 +1,6 @@
 package com.cjt2325.kotlin_jcameraview.util
 
-import android.os.Build
-import android.support.annotation.RequiresApi
 import android.util.Size
-import java.util.*
-
 
 /**
  * =====================================
@@ -16,10 +12,7 @@ import java.util.*
  */
 class CompareSizesByArea : Comparator<Size> {
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun compare(lhs: Size, rhs: Size): Int {
         return java.lang.Long.signum(lhs.width as Long * lhs.height - rhs.width as Long * rhs.height)
     }
-
-
 }

@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"/>
 
-    <com.cjt2325.cameralibrary.FoucsView
+    <com.cjt2325.cameralibrary.FocusView
         android:id="@+id/fouce_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

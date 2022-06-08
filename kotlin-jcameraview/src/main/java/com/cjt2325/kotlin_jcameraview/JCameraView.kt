@@ -2,8 +2,6 @@ package com.cjt2325.kotlin_jcameraview
 
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.os.Build
-import android.support.annotation.RequiresApi
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.TextureView
@@ -38,15 +36,24 @@ class JCameraView : FrameLayout, TextureView.SurfaceTextureListener {
         switchFlash = ImageView(context)
     }
 
-    constructor(context: Context?) : this(context, null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context) : this(context, null)
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
         initAttr(attrs)
         initView()
         initListener()
     }
 
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+    constructor(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) : super(context, attrs, defStyleAttr, defStyleRes) {
         initAttr(attrs)
         initView()
         initListener()
@@ -58,12 +65,18 @@ class JCameraView : FrameLayout, TextureView.SurfaceTextureListener {
 
     fun initView() {
         //CaptureLayout
-        val captureLayout_param = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        val captureLayout_param = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
         captureLayout_param.gravity = Gravity.BOTTOM
         captureLayout.layoutParams = captureLayout_param
 
         //TextureView
-        val textureView_param = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        val textureView_param = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
         textureView.layoutParams = textureView_param
         textureView.surfaceTextureListener = this
 
@@ -137,31 +150,28 @@ class JCameraView : FrameLayout, TextureView.SurfaceTextureListener {
         i("JCameraView onPause")
     }
 
-
     //TextureView监听
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         //锁屏再解锁不会回调onSurfaceTextureAvailable
         //打开Camera并启动浏览
         i("width = " + getScreenWidth(context) + " height = " + getScreenHeight(context));
-        i("Texturewidth = " + width + " Textureheight = " + height);
+        i("Texturewidth = $width Textureheight = $height");
         CameraNewInterface.Companion.getInstance().openCamera(context, textureView, width, height);
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         //锁屏会回调销毁(onSurfaceTextureDestroyed)
         i("onSurfaceTextureDestroyed")
         CameraNewInterface.Companion.getInstance().stopCamera()
         return true
     }
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
         i("onSurfaceTextureSizeChanged")
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-//        i("onSurfaceTextureUpdated")
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+        i("onSurfaceTextureUpdated")
     }
 
 }

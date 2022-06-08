@@ -1,8 +1,6 @@
 package com.cjt2325.kotlin_jcameraview.util
 
 import android.media.Image
-import android.os.Build
-import android.support.annotation.RequiresApi
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -16,7 +14,6 @@ import java.io.IOException
  * =====================================
  */
 class ImageSaver(private val mImage: Image, private val mFile: File) : Runnable {
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun run() {
         val buffer = mImage.getPlanes()[0].getBuffer()
         val bytes = ByteArray(buffer.remaining())
@@ -24,14 +21,14 @@ class ImageSaver(private val mImage: Image, private val mFile: File) : Runnable 
         var output: FileOutputStream? = null
         try {
             output = FileOutputStream(mFile)
-            output!!.write(bytes)
+            output.write(bytes)
         } catch (e: IOException) {
             e.printStackTrace()
         } finally {
             mImage.close()
             if (null != output) {
                 try {
-                    output!!.close()
+                    output.close()
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -39,5 +36,4 @@ class ImageSaver(private val mImage: Image, private val mFile: File) : Runnable 
             }
         }
     }
-
 }

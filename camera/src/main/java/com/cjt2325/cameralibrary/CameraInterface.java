@@ -1,5 +1,7 @@
 package com.cjt2325.cameralibrary;
 
+import static android.graphics.Bitmap.createBitmap;
+
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -38,8 +40,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.graphics.Bitmap.createBitmap;
-
 /**
  * =====================================
  * 作    者: 陈嘉桐
@@ -48,78 +48,43 @@ import static android.graphics.Bitmap.createBitmap;
  * 描    述：camera操作单例
  * =====================================
  */
-@SuppressWarnings("deprecation")
+
 public class CameraInterface implements Camera.PreviewCallback {
 
+    public static final int TYPE_RECORDER = 0x090;
+    public static final int TYPE_CAPTURE = 0x091;
     private static final String TAG = "CJT";
-
     private volatile static CameraInterface mCameraInterface;
-
-    public static void destroyCameraInterface() {
-        if (mCameraInterface != null) {
-            mCameraInterface = null;
-        }
-    }
-
+    int handlerTime = 0;
     private Camera mCamera;
     private Camera.Parameters mParams;
     private boolean isPreviewing = false;
-
     private int SELECTED_CAMERA = -1;
     private int CAMERA_POST_POSITION = -1;
     private int CAMERA_FRONT_POSITION = -1;
-
     private SurfaceHolder mHolder = null;
     private float screenProp = -1.0f;
-
     private boolean isRecorder = false;
     private MediaRecorder mediaRecorder;
     private String videoFileName;
     private String saveVideoPath;
     private String videoFileAbsPath;
     private Bitmap videoFirstFrame = null;
-
     private ErrorListener errorLisenter;
-
     private ImageView mSwitchView;
     private ImageView mFlashLamp;
-
     private int preview_width;
     private int preview_height;
-
     private int angle = 0;
     private int cameraAngle = 90;//摄像头角度   默认为90度
     private int rotation = 0;
     private byte[] firstFrame_data;
-
-    public static final int TYPE_RECORDER = 0x090;
-    public static final int TYPE_CAPTURE = 0x091;
     private int nowScaleRate = 0;
     private int recordScleRate = 0;
 
     //视频质量
     private int mediaQuality = JCameraView.MEDIA_QUALITY_MIDDLE;
     private SensorManager sm = null;
-
-    //获取CameraInterface单例
-    public static synchronized CameraInterface getInstance() {
-        if (mCameraInterface == null)
-            synchronized (CameraInterface.class) {
-                if (mCameraInterface == null)
-                    mCameraInterface = new CameraInterface();
-            }
-        return mCameraInterface;
-    }
-
-    public void setSwitchView(ImageView mSwitchView, ImageView mFlashLamp) {
-        this.mSwitchView = mSwitchView;
-        this.mFlashLamp = mFlashLamp;
-        if (mSwitchView != null) {
-            cameraAngle = CameraParamUtil.getInstance().getCameraDisplayOrientation(mSwitchView.getContext(),
-                    SELECTED_CAMERA);
-        }
-    }
-
     private SensorEventListener sensorEventListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
             if (Sensor.TYPE_ACCELEROMETER != event.sensor.getType()) {
@@ -133,6 +98,63 @@ public class CameraInterface implements Camera.PreviewCallback {
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     };
+    /**
+     * 拍照
+     */
+    private int nowAngle;
+
+    private CameraInterface() {
+        findAvailableCameras();
+        SELECTED_CAMERA = CAMERA_POST_POSITION;
+        saveVideoPath = "";
+    }
+
+    public static void destroyCameraInterface() {
+        if (mCameraInterface != null) {
+            mCameraInterface = null;
+        }
+    }
+
+    //获取CameraInterface单例
+    public static synchronized CameraInterface getInstance() {
+        if (mCameraInterface == null)
+            synchronized (CameraInterface.class) {
+                if (mCameraInterface == null)
+                    mCameraInterface = new CameraInterface();
+            }
+        return mCameraInterface;
+    }
+
+    private static Rect calculateTapArea(float x, float y, float coefficient, Context context) {
+        float focusAreaSize = 300;
+        int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
+        int centerX = (int) (x / ScreenUtils.getScreenWidth(context) * 2000 - 1000);
+        int centerY = (int) (y / ScreenUtils.getScreenHeight(context) * 2000 - 1000);
+        int left = clamp(centerX - areaSize / 2, -1000, 1000);
+        int top = clamp(centerY - areaSize / 2, -1000, 1000);
+        RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
+        return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF
+                .bottom));
+    }
+
+    private static int clamp(int x, int min, int max) {
+        if (x > max) {
+            return max;
+        }
+        if (x < min) {
+            return min;
+        }
+        return x;
+    }
+
+    public void setSwitchView(ImageView mSwitchView, ImageView mFlashLamp) {
+        this.mSwitchView = mSwitchView;
+        this.mFlashLamp = mFlashLamp;
+        if (mSwitchView != null) {
+            cameraAngle = CameraParamUtil.getInstance().getCameraDisplayOrientation(mSwitchView.getContext(),
+                    SELECTED_CAMERA);
+        }
+    }
 
     //切换摄像头icon跟随手机角度进行旋转
     private void rotationAnimation() {
@@ -207,7 +229,6 @@ public class CameraInterface implements Camera.PreviewCallback {
         }
     }
 
-
     public void setZoom(float zoom, int type) {
         if (mCamera == null) {
             return;
@@ -260,7 +281,6 @@ public class CameraInterface implements Camera.PreviewCallback {
         this.mediaQuality = quality;
     }
 
-
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         firstFrame_data = data;
@@ -273,18 +293,6 @@ public class CameraInterface implements Camera.PreviewCallback {
         params.setFlashMode(flashMode);
         mCamera.setParameters(params);
     }
-
-
-    public interface CameraOpenOverCallback {
-        void cameraHasOpened();
-    }
-
-    private CameraInterface() {
-        findAvailableCameras();
-        SELECTED_CAMERA = CAMERA_POST_POSITION;
-        saveVideoPath = "";
-    }
-
 
     /**
      * open Camera
@@ -446,11 +454,6 @@ public class CameraInterface implements Camera.PreviewCallback {
             Log.i(TAG, "=== Camera  Null===");
         }
     }
-
-    /**
-     * 拍照
-     */
-    private int nowAngle;
 
     public void takePicture(final TakePictureCallback callback) {
         if (mCamera == null) {
@@ -671,8 +674,6 @@ public class CameraInterface implements Camera.PreviewCallback {
         }
     }
 
-    int handlerTime = 0;
-
     public void handleFocus(final Context context, final float x, final float y, final FocusCallback callback) {
         if (mCamera == null) {
             return;
@@ -713,51 +714,9 @@ public class CameraInterface implements Camera.PreviewCallback {
         }
     }
 
-
-    private static Rect calculateTapArea(float x, float y, float coefficient, Context context) {
-        float focusAreaSize = 300;
-        int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
-        int centerX = (int) (x / ScreenUtils.getScreenWidth(context) * 2000 - 1000);
-        int centerY = (int) (y / ScreenUtils.getScreenHeight(context) * 2000 - 1000);
-        int left = clamp(centerX - areaSize / 2, -1000, 1000);
-        int top = clamp(centerY - areaSize / 2, -1000, 1000);
-        RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
-        return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF
-                .bottom));
-    }
-
-    private static int clamp(int x, int min, int max) {
-        if (x > max) {
-            return max;
-        }
-        if (x < min) {
-            return min;
-        }
-        return x;
-    }
-
     void setErrorLinsenter(ErrorListener errorLisenter) {
         this.errorLisenter = errorLisenter;
     }
-
-
-    public interface StopRecordCallback {
-        void recordResult(String url, Bitmap firstFrame);
-    }
-
-    interface ErrorCallback {
-        void onError();
-    }
-
-    public interface TakePictureCallback {
-        void captureResult(Bitmap bitmap, boolean isVertical);
-    }
-
-    public interface FocusCallback {
-        void focusSuccess();
-
-    }
-
 
     void registerSensorManager(Context context) {
         if (sm == null) {
@@ -776,5 +735,27 @@ public class CameraInterface implements Camera.PreviewCallback {
 
     void isPreview(boolean res) {
         this.isPreviewing = res;
+    }
+
+    public interface CameraOpenOverCallback {
+        void cameraHasOpened();
+    }
+
+    public interface StopRecordCallback {
+        void recordResult(String url, Bitmap firstFrame);
+    }
+
+
+    interface ErrorCallback {
+        void onError();
+    }
+
+    public interface TakePictureCallback {
+        void captureResult(Bitmap bitmap, boolean isVertical);
+    }
+
+    public interface FocusCallback {
+        void focusSuccess();
+
     }
 }

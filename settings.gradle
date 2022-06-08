@@ -1,1 +1,4 @@
-include ':app', ':camera', ':cameraapplication'
+include ':app'
+include ':camera'
+include ':cameraapplication'
+include ':kotlin-jcameraview'

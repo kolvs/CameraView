@@ -7,15 +7,16 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.cjt2325.cameralibrary.JCameraView;
-import com.cjt2325.cameralibrary.lisenter.JCameraLisenter;
+import com.cjt2325.cameralibrary.listener.JCameraListener;
 
 import java.io.File;
 
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         jCameraView.setSaveVideoPath(Environment.getExternalStorageDirectory().getPath() + File.separator + "JCamera");
 
         //JCameraView监听
-        jCameraView.setJCameraLisenter(new JCameraLisenter() {
+        jCameraView.setJCameraLisenter(new JCameraListener() {
             @Override
             public void captureSuccess(Bitmap bitmap) {
                 //获取图片bitmap
@@ -47,12 +48,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-
-            @Override
-            public void quit() {
-                //退出按钮
-                MainActivity.this.finish();
-            }
+//            @Override
+//            public void quit() {
+//                //退出按钮
+//                MainActivity.this.finish();
+//            }
         });
         //6.0动态权限获取
         getPermissions();
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 if (size == 0) {
                     granted = true;
                     jCameraView.onResume();
-                }else{
+                } else {
                     Toast.makeText(this, "请到设置-权限管理中开启", Toast.LENGTH_SHORT).show();
                     finish();
                 }
